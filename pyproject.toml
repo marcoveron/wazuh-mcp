@@ -1,0 +1,36 @@
+[project]
+name = "wazuh-mcp"
+version = "0.1.0"
+description = "MCP server for querying and operating a Wazuh SIEM/XDR deployment"
+readme = "README.md"
+authors = [
+    { name = "marcoveron", email = "mv.marcoveron@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "mcp[cli]>=2.2.0",
+    "httpx2>=2.13.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+wazuh-mcp = "wazuh_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
