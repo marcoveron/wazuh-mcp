@@ -32,10 +32,11 @@ def server(api_config, indexer_config, api_client, indexer_client):
 async def test_not_registered_when_the_deployment_disables_it(api_config, indexer_config):
     """A read-only deployment should not even advertise the write tools."""
     config = Config(api=api_config, indexer=indexer_config, allow_active_response=False)
-    names = {t.name for t in await build_server(config).list_tools()}
-    assert "wazuh_active_response" not in names
-    assert "wazuh_restart_agents" not in names
-    assert "wazuh_active_response_commands" not in names
+    tools = {t.name: t for t in await build_server(config).list_tools()}
+    assert "wazuh_active_response" not in tools
+    assert "wazuh_restart_agents" not in tools
+    # Listing commands is read-only, so a triage agent can still propose one.
+    assert tools["wazuh_active_response_commands"].annotations.read_only_hint is True
 
 
 async def test_registered_and_marked_destructive_when_enabled(server):

@@ -53,8 +53,9 @@ projection of the fields that matter, truncates `full_log`, and offers
 `full_documents=true` for when the detail really is the point.
 
 **Write tools are opt-in and absent otherwise.** `WAZUH_ALLOW_ACTIVE_RESPONSE`
-is off by default, and when off the Active Response tools are never registered —
-the model cannot see them, let alone call them.
+is off by default, and when off the Active Response write tools are never
+registered — the model cannot see them, let alone call them. Only the read-only
+listing of configured commands stays, so an agent can propose a real one.
 
 ## Setup
 
@@ -190,10 +191,10 @@ the bind.
 | `wazuh_manager_logs` | `ossec.log`, filterable by level and daemon |
 | `wazuh_manager_stats` | Throughput: events received, **dropped**, alerts written |
 
-### Active Response — off unless enabled
+### Active Response — writes off unless enabled
 | Tool | Purpose |
 |------|---------|
-| `wazuh_active_response_commands` | List the AR commands actually declared on the manager, and which the allowlist permits |
+| `wazuh_active_response_commands` | List the AR commands actually declared on the manager, and which the allowlist permits. Read-only, always registered |
 | `wazuh_active_response` | Run a configured AR command (firewall-drop, host-deny, …) on agents |
 | `wazuh_restart_agents` | Restart the agent process on specific hosts |
 

@@ -1,8 +1,12 @@
 """Active Response: the tools that change production hosts.
 
-Registered only when WAZUH_ALLOW_ACTIVE_RESPONSE is on, so a read-only
-deployment does not even advertise them. Every call here reaches a real endpoint
-and can lock an administrator out of a machine, so the guardrails are deliberate:
+The write tools are registered only when WAZUH_ALLOW_ACTIVE_RESPONSE is on, so
+a read-only deployment does not even advertise them. Listing the configured
+commands is read-only and always available, so a triage agent without write
+access can still propose a real command for a human or a workflow to run.
+
+Every write call reaches a real endpoint and can lock an administrator out of a
+machine, so the guardrails are deliberate:
 
   - an optional command allowlist (WAZUH_ACTIVE_RESPONSE_COMMANDS),
   - a refusal to fan out to every agent without an explicit confirmation flag,
@@ -31,17 +35,15 @@ _ALL_AGENTS = {"*", "all"}
 
 
 def register(mcp: MCPServer, config: Config) -> None:
-    if not config.allow_active_response:
-        return
-
     @mcp.tool(annotations=READ_ONLY)
     async def wazuh_active_response_commands() -> dict[str, Any]:
         """List the Active Response commands declared on the manager.
 
-        Call this before wazuh_active_response — it tells you what is actually
-        configured (in ossec.conf's <command> blocks) instead of guessing a name.
-        Each entry also carries `allowed`, reflecting whether
-        WAZUH_ACTIVE_RESPONSE_COMMANDS currently permits it.
+        Call this before running or proposing an Active Response — it tells you
+        what is actually configured (in ossec.conf's <command> blocks) instead of
+        guessing a name. Each entry also carries `allowed`, reflecting whether
+        WAZUH_ACTIVE_RESPONSE_COMMANDS currently permits it. Read-only: it is
+        available even when this server cannot run Active Response itself.
         """
         runtime = get_runtime()
         result = await runtime.api.get_items("/manager/configuration", section="command")
@@ -58,7 +60,11 @@ def register(mcp: MCPServer, config: Config) -> None:
             items,
             source=API,
             allowlist=sorted(runtime.config.active_response_allowlist) or "any",
+            active_response_enabled=runtime.config.allow_active_response,
         )
+
+    if not config.allow_active_response:
+        return
 
     @mcp.tool(annotations=DESTRUCTIVE)
     async def wazuh_active_response(
